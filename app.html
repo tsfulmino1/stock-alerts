@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Drop Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14151A;
+    --surface: #1E2028;
+    --surface-2: #262832;
+    --border: #33353F;
+    --text: #EDEDEF;
+    --text-dim: #9195A3;
+    --accent: #FFC857;
+    --accent-text: #14151A;
+    --ok: #3DDC84;
+    --warn: #6B6F7A;
+    --danger: #E5566B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  h1, h2, .display {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: calc(env(safe-area-inset-top) + 18px) 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  .topbar h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .topbar .sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .icon-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  main {
+    padding: 16px 20px 100px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty .display {
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card .info { flex: 1; min-width: 0; }
+  .card .name {
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tag-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+  .retailer-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text-dim);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--warn);
+    flex-shrink: 0;
+  }
+  .status-dot.in-stock { background: var(--ok); }
+  .status-text { font-size: 11px; color: var(--text-dim); }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+  .fab {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    right: 24px;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 26px;
+    font-weight: 500;
+    box-shadow: 0 6px 20px rgba(255,200,87,0.35);
+    cursor: pointer;
+  }
+  .sheet-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: flex-end;
+    z-index: 50;
+  }
+  .sheet-backdrop.open { display: flex; }
+  .sheet {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px calc(env(safe-area-inset-bottom) + 24px);
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+  .sheet h2 {
+    font-size: 17px;
+    margin: 0 0 16px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 14px 0 6px;
+  }
+  label:first-of-type { margin-top: 0; }
+  input, select {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .btn-row { display: flex; gap: 10px; margin-top: 22px; }
+  .btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .hint { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+  .banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .banner strong { color: var(--text); }
+  .banner button {
+    background: none; border: none; color: var(--accent);
+    font-size: 13px; font-weight: 600; padding: 0; margin-top: 8px; cursor: pointer;
+  }
+  .toast {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    left: 20px; right: 20px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Drop Watch</h1>
+    <div class="sub" id="repoSub">Not connected</div>
+  </div>
+  <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+</div>
+
+<main>
+  <div class="banner" id="setupBanner" style="display:none">
+    <strong>Connect your tracker</strong><br>
+    This app manages your product list, but a separate free service does the
+    actual checking and sends the push alerts. Connect it to the GitHub repo
+    you set up for that.
+    <button id="openSettingsFromBanner">Set up connection →</button>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <div class="display">Nothing tracked yet</div>
+    <div>Tap + to add a product from Best Buy, Target, or Pokémon Center</div>
+  </div>
+
+  <div id="productList"></div>
+</main>
+
+<button class="fab" id="addBtn" aria-label="Add product">+</button>
+
+<div class="sheet-backdrop" id="addSheetBackdrop">
+  <div class="sheet">
+    <h2>Track a product</h2>
+    <label for="pName">Name</label>
+    <input id="pName" placeholder="e.g. Scarlet &amp; Violet Booster Box">
+    <label for="pRetailer">Retailer</label>
+    <select id="pRetailer">
+      <option value="bestbuy">Best Buy</option>
+      <option value="target">Target</option>
+      <option value="pokemoncenter">Pokémon Center</option>
+    </select>
+    <label for="pUrl">Product page URL</label>
+    <input id="pUrl" placeholder="Paste the product link">
+    <div class="hint" id="urlHint"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="cancelAdd">Cancel</button>
+      <button class="btn btn-primary" id="saveAdd">Add & sync</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="settingsSheetBackdrop">
+  <div class="sheet">
+    <h2>Connection settings</h2>
+    <div class="hint" style="margin-bottom:6px">
+      Your product list is stored in a file in your own GitHub repo, so the
+      free backend checker can read it. See the README for how to create
+      the token below (repo → Settings → Developer settings → Fine-grained
+      tokens, with read/write access to just this repo's contents).
+    </div>
+    <label for="ghOwner">GitHub username</label>
+    <input id="ghOwner" placeholder="your-username">
+    <label for="ghRepo">Repo name</label>
+    <input id="ghRepo" placeholder="stock-alerts">
+    <label for="ghToken">Personal access token</label>
+    <input id="ghToken" type="password" placeholder="github_pat_...">
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
+      <button class="btn btn-primary" id="saveSettings">Save & sync</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RETAILER_LABELS = { bestbuy: 'Best Buy', target: 'Target', pokemoncenter: 'Pokémon Center' };
+const URL_HINTS = {
+  bestbuy: 'Paste the full bestbuy.com product page URL.',
+  target: 'Paste the full target.com product page URL.',
+  pokemoncenter: 'Paste the full pokemoncenter.com product page URL.',
+};
+
+let products = [];
+let config = { owner: '', repo: '', token: '' };
+let sha = null; // current products.json blob sha, needed to update the file
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem('dropwatch-config');
+    if (raw) config = JSON.parse(raw);
+  } catch (e) {}
+  updateConnectionStatus();
+}
+
+function saveConfig() {
+  localStorage.setItem('dropwatch-config', JSON.stringify(config));
+  updateConnectionStatus();
+}
+
+function isConnected() {
+  return config.owner && config.repo && config.token;
+}
+
+function updateConnectionStatus() {
+  const sub = document.getElementById('repoSub');
+  const banner = document.getElementById('setupBanner');
+  if (isConnected()) {
+    sub.textContent = `${config.owner}/${config.repo}`;
+    banner.style.display = 'none';
+  } else {
+    sub.textContent = 'Not connected';
+    banner.style.display = 'block';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+async function fetchProducts() {
+  if (!isConnected()) { render(); return; }
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${config.owner}/${config.repo}/contents/products.json`,
+      { headers: { Authorization: `Bearer ${config.token}`, Accept: 'application/vnd.github+json' } }
+    );
+    if (res.status === 404) {
+      products = [];
+      sha = null;
+      render();
+      return;
+    }
+    if (!res.ok) throw new Error(`GitHub error ${res.status}`);
+    const data = await res.json();
+    sha = data.sha;
+    const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+    products = JSON.parse(decoded || '[]');
+    render();
+  } catch (e) {
+    showToast('Could not load your list — check settings');
+  }
+}
+
+async function pushProducts() {
+  if (!isConnected()) {
+    showToast('Connect GitHub in settings first');
+    return false;
+  }
+  try {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(products, null, 2))));
+    const body = {
+      message: 'Update tracked products',
+      content,
+      ...(sha ? { sha } : {}),
+    };
+    const res = await fetch(
+      `https://api.github.com/repos/${config.owner}/${config.repo}/contents/products.json`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${config.token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!res.ok) throw new Error(`GitHub error ${res.status}`);
+    const data = await res.json();
+    sha = data.content.sha;
+    return true;
+  } catch (e) {
+    showToast('Sync failed — check your token & repo name');
+    return false;
+  }
+}
+
+function render() {
+  const list = document.getElementById('productList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+  if (products.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  products.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="status-dot"></div>
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="tag-row">
+          <span class="retailer-tag">${RETAILER_LABELS[p.retailer] || p.retailer}</span>
+          <span class="status-text">Tracking</span>
+        </div>
+      </div>
+      <button class="remove-btn" data-id="${p.id}" aria-label="Remove">×</button>
+    `;
+    list.appendChild(card);
+  });
+  list.querySelectorAll('.remove-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      products = products.filter((p) => p.id !== btn.dataset.id);
+      render();
+      const ok = await pushProducts();
+      if (ok) showToast('Removed & synced');
+    });
+  });
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  document.getElementById('pName').value = '';
+  document.getElementById('pUrl').value = '';
+  document.getElementById('pRetailer').value = 'bestbuy';
+  document.getElementById('urlHint').textContent = URL_HINTS.bestbuy;
+  openSheet('addSheetBackdrop');
+});
+document.getElementById('cancelAdd').addEventListener('click', () => closeSheet('addSheetBackdrop'));
+document.getElementById('pRetailer').addEventListener('change', (e) => {
+  document.getElementById('urlHint').textContent = URL_HINTS[e.target.value];
+});
+document.getElementById('saveAdd').addEventListener('click', async () => {
+  const name = document.getElementById('pName').value.trim();
+  const retailer = document.getElementById('pRetailer').value;
+  const url = document.getElementById('pUrl').value.trim();
+  if (!name || !url) { showToast('Add a name and URL first'); return; }
+  products.push({ id: Date.now().toString(36), name, retailer, url });
+  render();
+  closeSheet('addSheetBackdrop');
+  const ok = await pushProducts();
+  showToast(ok ? 'Added & synced' : 'Added — will retry sync in settings');
+});
+
+document.getElementById('settingsBtn').addEventListener('click', () => openSettings());
+document.getElementById('openSettingsFromBanner').addEventListener('click', () => openSettings());
+function openSettings() {
+  document.getElementById('ghOwner').value = config.owner || '';
+  document.getElementById('ghRepo').value = config.repo || '';
+  document.getElementById('ghToken').value = config.token || '';
+  openSheet('settingsSheetBackdrop');
+}
+document.getElementById('cancelSettings').addEventListener('click', () => closeSheet('settingsSheetBackdrop'));
+document.getElementById('saveSettings').addEventListener('click', async () => {
+  config.owner = document.getElementById('ghOwner').value.trim();
+  config.repo = document.getElementById('ghRepo').value.trim();
+  config.token = document.getElementById('ghToken').value.trim();
+  saveConfig();
+  closeSheet('settingsSheetBackdrop');
+  await fetchProducts();
+  showToast(isConnected() ? 'Connected' : 'Settings saved');
+});
+
+loadConfig();
+fetchProducts();
+</script>
+</body>
+</html>
