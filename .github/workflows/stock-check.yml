@@ -1,1 +1,36 @@
+name: Drop Watch Stock Check
 
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check-stock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore last-known stock state
+        uses: actions/cache/restore@v4
+        with:
+          path: stock_state.json
+          key: stock-state-cache
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run stock check
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python stock_check.py
+
+      - name: Save stock state for next run
+        uses: actions/cache/save@v4
+        with:
+          path: stock_state.json
+          key: stock-state-cache
