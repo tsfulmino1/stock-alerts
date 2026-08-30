@@ -4,5 +4,11 @@
     "name": "30th Anniversary ETB",
     "retailer": "bestbuy",
     "url": "https://www.bestbuy.com/product/pokemon-trading-card-game-30th-celebration-elite-trainer-box/JJG2TL8XCJ/sku/6685559?sb_share_source=PDP&ref=app_pdp&loc=pdp_page"
+  },
+  {
+    "id": "mtgdko7j",
+    "name": "Test",
+    "retailer": "pokemoncenter",
+    "url": "https://www.pokemoncenter.com/product/10-10115-113/pokemon-tcg-scarlet-and-violet-black-bolt-booster-bundle-6-packs"
   }
 ]
